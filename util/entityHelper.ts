@@ -2,19 +2,23 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { lastValueFrom, map } from 'rxjs';
 
-export const createEntity = async (
+export const registerEntity = async (
   httpService: HttpService,
   entityData: any,
   endpointUri: string,
 ) => {
-  const res = await lastValueFrom(
-    httpService
-      .post(endpointUri, entityData, {
-        headers: { 'Content-type': 'application/json' },
-      })
-      .pipe(map((item) => item.data)),
-  );
-  return res;
+  try {
+    const res = await lastValueFrom(
+      httpService.post(endpointUri, entityData).pipe(map((item) => item.data)),
+    );
+    return res;
+  } catch (e) {
+    console.log(e);
+    throw new HttpException(
+      'Error while creating entity',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
 };
 
 export const searchEntity = async (
@@ -34,6 +38,7 @@ export const searchEntity = async (
     throw new HttpException('500 Internal', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 };
+
 export const getEntityByID = async (
   httpService: HttpService,
   endpointUri: string,
@@ -47,12 +52,12 @@ export const getEntityByID = async (
   );
   return res;
 };
+
 export const updateEntity = async (
   httpService: HttpService,
   entityData: any,
   endpointUri: string,
 ) => {
-  console.log(endpointUri, entityData);
   try {
     const res = await lastValueFrom(
       httpService

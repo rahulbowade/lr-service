@@ -3,7 +3,7 @@ import { lastValueFrom, map } from 'rxjs';
 import * as qs from 'qs';
 import { HttpService } from '@nestjs/axios';
 import { fetchDataFromAcessToken } from 'util/fetchData';
-import { searchEntity, updateEntity } from 'util/entityHelper';
+import { registerEntity, searchEntity, updateEntity } from 'util/entityHelper';
 
 @Injectable()
 export class AppService {
@@ -18,7 +18,7 @@ export class AppService {
       username: username,
       password: password,
       grant_type: 'password',
-      scope: 'openid phone email address',
+      scope: 'openid phone email address-casa',
     });
     const config: any = {
       url: process.env.ACCESS_TOKEN_URI,
@@ -43,6 +43,7 @@ export class AppService {
       );
       // search in RC using institute's username
     } catch (e) {
+      console.log(e);
       throw new HttpException('Get registered on CASA', HttpStatus.NOT_FOUND);
     }
     console.log(instituteData);
@@ -52,35 +53,38 @@ export class AppService {
       {
         filters: {
           username: {
-            eq: 'unik-new',
+            eq: instituteData.preferred_username,
           },
         },
         limit: 1,
         offset: 0,
       },
     );
-    console.log(searchRes);
+    const entityData = {
+      name: instituteData.name,
+      phoneNumber: instituteData.phone ? instituteData.phone : '1234567890',
+      email: instituteData.email,
+      username: instituteData.preferred_username,
+      address: instituteData['address-casa']
+        ? instituteData['address-casa']
+        : 'NOT PROVIDED',
+    };
     if (searchRes.length) {
       {
-        const updatedData = {
-          name: instituteData.name,
-          phoneNumber: instituteData.phone ? instituteData.phone : '123456',
-          email: instituteData.email,
-          username: instituteData.preferred_username,
-          address: instituteData.address.address
-            ? instituteData.address
-            : 'GHAR',
-        };
         const updateActionRes = await updateEntity(
           this.httpService,
-          updatedData,
-          process.env.BASE_URI_RC + `Institue/${searchRes[0].osid}`,
+          entityData,
+          process.env.BASE_URI_RC + `Institute/${searchRes[0].osid}`,
         );
         return updateActionRes;
       }
     } else {
-      // TODO: call register user helper
-      return 'register User';
+      const registerUserRes = await registerEntity(
+        this.httpService,
+        entityData,
+        process.env.BASE_URI_RC + `Institute/invite`,
+      );
+      return registerUserRes;
     }
   }
 }
