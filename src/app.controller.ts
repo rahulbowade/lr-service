@@ -1,15 +1,25 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { InstituteDto } from 'interfaces/institute.dto';
+import { LoginDto } from 'interfaces/Login.dto';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post('login')
-  login(@Body() institudeDto: InstituteDto) {
-    return this.appService.login(institudeDto.username, institudeDto.password);
+  @Post('login/Institute')
+  loginInstitute(@Body() loginDto: LoginDto) {
+    return this.appService.loginInstitue(loginDto.username, loginDto.password);
+  }
+
+  @Post('login/Tutor')
+  loginTutor(@Body() loginDto: LoginDto) {
+    return this.appService.loginTutor(loginDto.username, loginDto.password);
+  }
+
+  @Post('login/Student')
+  loginStudent(@Body() loginDto: LoginDto) {
+    return this.appService.loginStudent(loginDto.username, loginDto.password);
   }
 
   @Get('callback')
