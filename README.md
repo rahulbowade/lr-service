@@ -1,5 +1,5 @@
 # Architecture overview
-![UP-HRH-Auth drawio](https://user-images.githubusercontent.com/30565750/210239389-7395a5e2-ea5c-4599-88c5-dc3d0109a163.svg)
+![UP-HRH-Auth](https://user-images.githubusercontent.com/30565750/210239617-c51801e5-73d4-49b9-a473-2426bd2b5d82.jpg)
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
