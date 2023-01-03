@@ -1,6 +1,10 @@
 # Architecture overview
 ![UP-HRH-Auth](https://user-images.githubusercontent.com/30565750/210239617-c51801e5-73d4-49b9-a473-2426bd2b5d82.jpg)
 
+## Postman collection
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/17248210-81d16297-21ec-4100-96c2-a8375d30230f?action=collection%2Ffork&collection-url=entityId%3D17248210-81d16297-21ec-4100-96c2-a8375d30230f%26entityType%3Dcollection%26workspaceId%3D68433d66-4c7e-449e-9eb3-3d6eed984b55)
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
