@@ -22,6 +22,19 @@ export class AppController {
     return this.appService.loginStudent(loginDto.username, loginDto.password);
   }
 
+  @Post('register/Tutor')
+  registerTutor(@Body() loginDto: LoginDto) {
+    return this.appService.registerTutor(loginDto.username, loginDto.password);
+  }
+
+  @Post('register/Student')
+  registerStudent(@Body() loginDto: LoginDto) {
+    return this.appService.registerStudent(
+      loginDto.username,
+      loginDto.password,
+    );
+  }
+
   @Get('callback')
   getHello(@Req() request: Request): string {
     return this.appService.getHello();

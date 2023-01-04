@@ -75,23 +75,19 @@ export class AppService {
         ? instituteData['address-casa']
         : '',
     };
-    let userid;
     if (searchRes.length) {
-      userid = searchRes[0].osid;
       updateEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Institute/${searchRes[0].osid}`,
       );
     } else {
-      const registerUserRes = await registerEntity(
+      await registerEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Institute/invite`,
       );
-      userid = registerUserRes.result.Institute.osid;
     }
-    let rc_res;
     try {
       const data = qs.stringify({
         username: username,
@@ -100,12 +96,13 @@ export class AppService {
         scope: 'openid',
         client_id: 'registry-frontend',
       });
-      rc_res = await getAccessTokenFromCreds(
+      const rc_res = await getAccessTokenFromCreds(
         data,
         process.env.ACCESS_TOKEN_URI_RC,
         this.httpService,
         '',
       );
+      return rc_res;
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -113,7 +110,6 @@ export class AppService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    return { ...rc_res, userid };
   }
 
   async loginTutor(username: string, password: string) {
@@ -161,36 +157,17 @@ export class AppService {
       qualifications: tutorData.Qualification,
       aadhaarNo: tutorData.aadhaarNo,
     };
-    let userid;
     if (searchRes.length) {
-      // Update Data
-      userid = searchRes[0].osid;
+      // Found and Update Data
       updateEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Tutor/${searchRes[0].osid}`,
       );
     } else {
-      const registerUserRes = await registerEntity(
-        this.httpService,
-        entityData,
-        process.env.BASE_URI_RC + `Tutor/invite`,
-      );
-      userid = registerUserRes.result.Tutor.osid;
-
-      const passResetResult = await resetPasswordEntity(
-        this.httpService,
-        process.env.ADMIN_ACCESS_TOKEN_URL,
-        process.env.RC_RESET_PASSWORD_BASE_URL,
-        username,
-        password,
-        process.env.ADMIN_USERNAME,
-        process.env.ADMIN_PASS,
-        process.env.ADMIN_USER_INFO_URL,
-      );
-      console.log(passResetResult);
+      // TODO: redirect to login
+      throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
     }
-    let rc_res;
     try {
       const data = qs.stringify({
         username: username,
@@ -199,12 +176,13 @@ export class AppService {
         scope: 'openid',
         client_id: 'registry-frontend',
       });
-      rc_res = await getAccessTokenFromCreds(
+      const rc_res = await getAccessTokenFromCreds(
         data,
         process.env.ACCESS_TOKEN_URI_RC,
         this.httpService,
         '',
       );
+      return rc_res;
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -212,7 +190,6 @@ export class AppService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    return { ...rc_res, userid };
   }
 
   async loginStudent(username: string, password: string) {
@@ -239,7 +216,7 @@ export class AppService {
     console.log(studentData);
     const searchRes: Array<any> = await searchEntity(
       this.httpService,
-      process.env.BASE_URI_RC + 'Tutor/search',
+      process.env.BASE_URI_RC + 'Student/search',
       {
         filters: {
           username: {
@@ -263,36 +240,19 @@ export class AppService {
       rollNo: studentData.RollNo.toString(),
       dob: studentData.DateOfBirth,
     };
-    let userid;
+    console.log()
     if (searchRes.length) {
       // Update Data
-      userid = searchRes[0].osid;
       updateEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Student/${searchRes[0].osid}`,
       );
     } else {
-      const registerUserRes = await registerEntity(
-        this.httpService,
-        entityData,
-        process.env.BASE_URI_RC + `Student/invite`,
-      );
-      userid = registerUserRes.result.Student.osid;
-      // Reset password
-      await resetPasswordEntity(
-        this.httpService,
-        process.env.ADMIN_ACCESS_TOKEN_URL,
-        process.env.RC_RESET_PASSWORD_BASE_URL,
-        username,
-        password,
-        process.env.ADMIN_USERNAME,
-        process.env.ADMIN_PASS,
-        process.env.ADMIN_USER_INFO_URL,
-      );
+      // TODO: redirect to login
+      throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
     }
 
-    let rc_res;
     try {
       const data = qs.stringify({
         username: username,
@@ -301,12 +261,13 @@ export class AppService {
         scope: 'openid',
         client_id: 'registry-frontend',
       });
-      rc_res = await getAccessTokenFromCreds(
+      const rc_res = await getAccessTokenFromCreds(
         data,
         process.env.ACCESS_TOKEN_URI_RC,
         this.httpService,
         '',
       );
+      return rc_res;
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -314,6 +275,145 @@ export class AppService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    return { ...rc_res, userid };
+  }
+
+  async registerStudent(username: string, password: string) {
+    let studentId;
+    try {
+      let _;
+      [_, studentId] = username.split('_');
+      if (_ !== 'student')
+        throw new Error('Username should be of form student_id');
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        'Invalid username or not registered on CASA',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const searchRes: Array<any> = await searchEntity(
+      this.httpService,
+      process.env.BASE_URI_RC + 'Student/search',
+      {
+        filters: {
+          username: {
+            eq: username,
+          },
+        },
+        limit: 1,
+        offset: 0,
+      },
+    );
+
+    if (searchRes.length) {
+      // TODO: redirect to login
+      throw new HttpException(
+        'Student already registered',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const res = await lastValueFrom(
+      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId),
+    );
+    const studentData = res.data;
+
+    // Update or register Studnet
+    const entityData = {
+      name: studentData.StudentName,
+      courseKey: studentData.CourseKey.toString(),
+      email: '',
+      username: username,
+      StudentKey: studentData.StudentProfileKey.toString(),
+      centerKey: studentData.CenterKey.toString(),
+      address: studentData.Address,
+      rollNo: studentData.RollNo.toString(),
+      dob: studentData.DateOfBirth,
+    };
+
+    await registerEntity(
+      this.httpService,
+      entityData,
+      process.env.BASE_URI_RC + `Student/invite`,
+    );
+    // Reset password
+    await resetPasswordEntity(
+      this.httpService,
+      process.env.ADMIN_ACCESS_TOKEN_URL,
+      process.env.RC_RESET_PASSWORD_BASE_URL,
+      username,
+      password,
+      process.env.ADMIN_USERNAME,
+      process.env.ADMIN_PASS,
+      process.env.ADMIN_USER_INFO_URL,
+    );
+    return 'Successfully registered';
+  }
+
+  async registerTutor(username: string, password: string) {
+    let tutorId;
+    try {
+      let _;
+      [_, tutorId] = username.split('_');
+      if (_ !== 'tutor') throw new Error('Username should be of form tutor_id');
+    } catch (e) {
+      throw new HttpException(
+        'Invalid username or not registered on CASA',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const searchRes: Array<any> = await searchEntity(
+      this.httpService,
+      process.env.BASE_URI_RC + 'Tutor/search',
+      {
+        filters: {
+          username: {
+            eq: username,
+          },
+        },
+        limit: 1,
+        offset: 0,
+      },
+    );
+
+    if (searchRes.length) {
+      // TODO: redirect to login
+      throw new HttpException('Tutor already registered', HttpStatus.NOT_FOUND);
+    }
+    const res = await lastValueFrom(
+      this.httpService.get(process.env.TUTOR_DATA_CASA_BASE_URI + tutorId),
+    );
+    const tutorData = res.data;
+
+    // Update or register Tutor
+    const entityData = {
+      name: tutorData.TutorName,
+      phoneNumber: tutorData.ContactDetails ? tutorData.ContactDetails : '',
+      email: '',
+      username: username,
+      tutorKey: tutorData.TutorKey.toString(),
+      centerKey: tutorData.CenterKey.toString(),
+      qualifications: tutorData.Qualification,
+      aadhaarNo: tutorData.aadhaarNo,
+    };
+    await registerEntity(
+      this.httpService,
+      entityData,
+      process.env.BASE_URI_RC + `Tutor/invite`,
+    );
+
+    await resetPasswordEntity(
+      this.httpService,
+      process.env.ADMIN_ACCESS_TOKEN_URL,
+      process.env.RC_RESET_PASSWORD_BASE_URL,
+      username,
+      password,
+      process.env.ADMIN_USERNAME,
+      process.env.ADMIN_PASS,
+      process.env.ADMIN_USER_INFO_URL,
+    );
+    return 'Successfully registered';
   }
 }
