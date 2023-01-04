@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import {
-  fetchDataFromAcessToken,
+  fetchDataFromAcessTokenPost,
   getAccessTokenFromCreds,
 } from 'util/fetchData';
-import { registerEntity, searchEntity, updateEntity } from 'util/entityHelper';
+import {
+  registerEntity,
+  resetPasswordEntity,
+  searchEntity,
+  updateEntity,
+} from 'util/entityHelper';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import * as qs from 'qs';
 import { lastValueFrom } from 'rxjs';
@@ -38,7 +43,7 @@ export class AppService {
     }
 
     const access_token = res.access_token;
-    const instituteData = await fetchDataFromAcessToken(
+    const instituteData = await fetchDataFromAcessTokenPost(
       access_token,
       process.env.INFO_URI_CASA,
       this.httpService,
@@ -104,7 +109,7 @@ export class AppService {
     } catch (e) {
       console.log(e);
       throw new HttpException(
-        "Can't get token from RC keycloak",
+        "Can't get token from RC keycloak - Institute",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -172,6 +177,18 @@ export class AppService {
         process.env.BASE_URI_RC + `Tutor/invite`,
       );
       userid = registerUserRes.result.Tutor.osid;
+
+      const passResetResult = await resetPasswordEntity(
+        this.httpService,
+        process.env.ADMIN_ACCESS_TOKEN_URL,
+        process.env.RC_RESET_PASSWORD_BASE_URL,
+        username,
+        password,
+        process.env.ADMIN_USERNAME,
+        process.env.ADMIN_PASS,
+        process.env.ADMIN_USER_INFO_URL,
+      );
+      console.log(passResetResult);
     }
     let rc_res;
     try {
@@ -191,7 +208,7 @@ export class AppService {
     } catch (e) {
       console.log(e);
       throw new HttpException(
-        "Can't get token from RC keycloak",
+        "Can't get token from RC keycloak - Tutor",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -207,6 +224,7 @@ export class AppService {
       if (_ !== 'student')
         throw new Error('Username should be of form student_id');
     } catch (e) {
+      console.log(e);
       throw new HttpException(
         'Invalid username or not registered on CASA',
         HttpStatus.NOT_FOUND,
@@ -261,7 +279,19 @@ export class AppService {
         process.env.BASE_URI_RC + `Student/invite`,
       );
       userid = registerUserRes.result.Student.osid;
+      // Reset password
+      await resetPasswordEntity(
+        this.httpService,
+        process.env.ADMIN_ACCESS_TOKEN_URL,
+        process.env.RC_RESET_PASSWORD_BASE_URL,
+        username,
+        password,
+        process.env.ADMIN_USERNAME,
+        process.env.ADMIN_PASS,
+        process.env.ADMIN_USER_INFO_URL,
+      );
     }
+
     let rc_res;
     try {
       const data = qs.stringify({
@@ -280,7 +310,7 @@ export class AppService {
     } catch (e) {
       console.log(e);
       throw new HttpException(
-        "Can't get token from RC keycloak",
+        "Can't get token from RC keycloak - Student",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

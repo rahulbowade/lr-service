@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom, map } from 'rxjs';
 import * as qs from 'qs';
 
-export const fetchDataFromAcessToken = async (
+export const fetchDataFromAcessTokenPost = async (
   access_token: string,
   info_uri: string,
   httpService: HttpService,
@@ -14,6 +14,19 @@ export const fetchDataFromAcessToken = async (
         {},
         { headers: { Authorization: `Bearer ${access_token}` } },
       )
+      .pipe(map((item) => item.data)),
+  );
+  return res;
+};
+
+export const fetchDataFromAcessTokenGet = async (
+  access_token: string,
+  info_uri: string,
+  httpService: HttpService,
+) => {
+  const res = await lastValueFrom(
+    httpService
+      .get(info_uri, { headers: { Authorization: `Bearer ${access_token}` } })
       .pipe(map((item) => item.data)),
   );
   return res;
