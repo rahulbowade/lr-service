@@ -39,7 +39,10 @@ export class AppService {
         process.env.ENCODED_CLIENTID_CLIENTSECRETS_CASA,
       );
     } catch (e) {
-      throw new HttpException('Get registered on CASA', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Get registered on CASA or invalid creds',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     const access_token = res.access_token;
@@ -240,7 +243,7 @@ export class AppService {
       rollNo: studentData.RollNo.toString(),
       dob: studentData.DateOfBirth,
     };
-    console.log()
+    console.log();
     if (searchRes.length) {
       // Update Data
       updateEntity(
