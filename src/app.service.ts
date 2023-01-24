@@ -39,6 +39,7 @@ export class AppService {
         process.env.ENCODED_CLIENTID_CLIENTSECRETS_CASA,
       );
     } catch (e) {
+      console.log(e);
       throw new HttpException(
         'Get registered on CASA or invalid creds',
         HttpStatus.NOT_FOUND,
@@ -78,12 +79,15 @@ export class AppService {
         ? instituteData['address-casa']
         : '',
     };
+    console.log(searchRes);
+    let osid;
     if (searchRes.length) {
       updateEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Institute/${searchRes[0].osid}`,
       );
+      osid = searchRes[0].osid;
     } else {
       await registerEntity(
         this.httpService,
@@ -91,10 +95,21 @@ export class AppService {
         process.env.BASE_URI_RC + `Institute/invite`,
       );
     }
+
+    await resetPasswordEntity(
+      this.httpService,
+      process.env.ADMIN_ACCESS_TOKEN_URL,
+      process.env.RC_RESET_PASSWORD_BASE_URL,
+      username,
+      password,
+      process.env.ADMIN_USERNAME,
+      process.env.ADMIN_PASS,
+      process.env.ADMIN_USER_INFO_URL,
+    );
     try {
       const data = qs.stringify({
         username: username,
-        password: 'test',
+        password: password,
         grant_type: 'password',
         scope: 'openid',
         client_id: 'registry-frontend',
@@ -105,9 +120,9 @@ export class AppService {
         this.httpService,
         '',
       );
-      return rc_res;
+      return { ...rc_res, osid };
     } catch (e) {
-      console.log(e);
+      console.log(e.response.data);
       throw new HttpException(
         "Can't get token from RC keycloak - Institute",
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -160,6 +175,7 @@ export class AppService {
       qualifications: tutorData.Qualification,
       aadhaarNo: tutorData.aadhaarNo,
     };
+    let osid;
     if (searchRes.length) {
       // Found and Update Data
       updateEntity(
@@ -167,6 +183,7 @@ export class AppService {
         entityData,
         process.env.BASE_URI_RC + `Tutor/${searchRes[0].osid}`,
       );
+      osid = searchRes[0].osid;
     } else {
       // TODO: redirect to login
       throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
@@ -185,9 +202,9 @@ export class AppService {
         this.httpService,
         '',
       );
-      return rc_res;
+      return { ...rc_res, osid };
     } catch (e) {
-      console.log(e);
+      console.log(e.response.data);
       throw new HttpException(
         "Can't get token from RC keycloak - Tutor",
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -204,9 +221,9 @@ export class AppService {
       if (_ !== 'student')
         throw new Error('Username should be of form student_id');
     } catch (e) {
-      console.log(e);
+      console.log(e.response.data);
       throw new HttpException(
-        'Invalid username or not registered on CASA',
+        'Invalid username, username should be of form <entity>_{id}',
         HttpStatus.NOT_FOUND,
       );
     }
@@ -244,6 +261,7 @@ export class AppService {
       dob: studentData.DateOfBirth,
     };
     console.log();
+    let osid;
     if (searchRes.length) {
       // Update Data
       updateEntity(
@@ -251,6 +269,7 @@ export class AppService {
         entityData,
         process.env.BASE_URI_RC + `Student/${searchRes[0].osid}`,
       );
+      osid = searchRes[0].osid;
     } else {
       // TODO: redirect to login
       throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
@@ -270,9 +289,9 @@ export class AppService {
         this.httpService,
         '',
       );
-      return rc_res;
+      return { ...rc_res, osid };
     } catch (e) {
-      console.log(e);
+      console.log(e.response.data);
       throw new HttpException(
         "Can't get token from RC keycloak - Student",
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -281,6 +300,7 @@ export class AppService {
   }
 
   async registerStudent(username: string, password: string) {
+    console.log(username, password);
     let studentId;
     try {
       let _;
@@ -288,11 +308,8 @@ export class AppService {
       if (_ !== 'student')
         throw new Error('Username should be of form student_id');
     } catch (e) {
-      console.log(e);
-      throw new HttpException(
-        'Invalid username or not registered on CASA',
-        HttpStatus.NOT_FOUND,
-      );
+      console.log(e.response.data);
+      throw new HttpException('Invalid username', HttpStatus.NOT_FOUND);
     }
 
     const searchRes: Array<any> = await searchEntity(
@@ -308,7 +325,6 @@ export class AppService {
         offset: 0,
       },
     );
-
     if (searchRes.length) {
       // TODO: redirect to login
       throw new HttpException(
@@ -316,12 +332,22 @@ export class AppService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    const res = await lastValueFrom(
-      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId),
-    );
-    const studentData = res.data;
-
+    let studentData;
+    try {
+      const res = await lastValueFrom(
+        this.httpService.get(
+          process.env.STUDENT_DATA_CASA_BASE_URI + studentId,
+        ),
+      );
+      if (!res.data) throw new Error('Username not registered on CASA');
+      studentData = res.data;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        'User not registered on CASA',
+        HttpStatus.NOT_FOUND,
+      );
+    }
     // Update or register Studnet
     const entityData = {
       name: studentData.StudentName,
@@ -361,10 +387,8 @@ export class AppService {
       [_, tutorId] = username.split('_');
       if (_ !== 'tutor') throw new Error('Username should be of form tutor_id');
     } catch (e) {
-      throw new HttpException(
-        'Invalid username or not registered on CASA',
-        HttpStatus.NOT_FOUND,
-      );
+      console.log(e.response.data);
+      throw new HttpException('Invalid username', HttpStatus.NOT_FOUND);
     }
 
     const searchRes: Array<any> = await searchEntity(
@@ -383,12 +407,25 @@ export class AppService {
 
     if (searchRes.length) {
       // TODO: redirect to login
-      throw new HttpException('Tutor already registered', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Student already registered',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    const res = await lastValueFrom(
-      this.httpService.get(process.env.TUTOR_DATA_CASA_BASE_URI + tutorId),
-    );
-    const tutorData = res.data;
+    let tutorData;
+    try {
+      const res = await lastValueFrom(
+        this.httpService.get(process.env.TUTOR_DATA_CASA_BASE_URI + tutorId),
+      );
+      if (!res.data) throw new Error('User not registered on CASA');
+      tutorData = res.data;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        'User not registered on CASA',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     // Update or register Tutor
     const entityData = {
@@ -406,7 +443,6 @@ export class AppService {
       entityData,
       process.env.BASE_URI_RC + `Tutor/invite`,
     );
-
     await resetPasswordEntity(
       this.httpService,
       process.env.ADMIN_ACCESS_TOKEN_URL,

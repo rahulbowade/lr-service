@@ -7,6 +7,11 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get()
+  helloWorld() {
+    return this.appService.getHello();
+  }
+
   @Post('login/Institute')
   loginInstitute(@Body() loginDto: LoginDto) {
     return this.appService.loginInstitue(loginDto.username, loginDto.password);

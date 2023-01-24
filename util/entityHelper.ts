@@ -16,9 +16,11 @@ export const registerEntity = async (
     const res = await lastValueFrom(
       httpService.post(endpointUri, entityData).pipe(map((item) => item.data)),
     );
+    console.log(res);
     return res;
-  } catch (e) {
-    console.log(e);
+  } 
+  catch (e) {
+    console.log(e.response.data);
     throw new HttpException(
       'Error while creating entity',
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -106,7 +108,7 @@ export const resetPasswordEntity = async (
       '',
     );
   } catch (e) {
-    console.log(e);
+    console.log(e.response.data);
     throw new HttpException(
       'Cant fetch admin access token',
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -151,7 +153,7 @@ export const resetPasswordEntity = async (
     );
     return res;
   } catch (e) {
-    console.log(e);
+    console.log(e.response.data);
     throw new HttpException(
       'Error while Resetting password',
       HttpStatus.INTERNAL_SERVER_ERROR,
