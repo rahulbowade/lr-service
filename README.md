@@ -10,7 +10,7 @@ Steps to run the application
 1. `npm i`
 2. `npm i -g pm2`
 3. `cp sample.env .env`
-4. Edit the .env files according to your configuration of keycloak etc. 
+4. Edit the `.env` file according to your configuration of keycloak and other vars accordingly.
 ```
 This will run the service in background on the server. Allow ports accordingly if you want it to be accessible on internet.
 ```
