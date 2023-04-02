@@ -16,3 +16,8 @@ This will run the service in background on the server. Allow ports accordingly i
 ```
 3. `pm2 start npm --name "lr-service" -- start`
 
+
+Notes
+------
+
+Student and teacher have not username and password associated with it, so they both have `/register` endpoints and institutes only have `/login` endpoints. Please go through the postman collection shared above. 
