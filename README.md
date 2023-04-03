@@ -27,15 +27,13 @@ Student and teacher have not username and password associated with it, so they b
 Reference for Architecture
 -----------------------------
 
-`Auth Backend Wrapper` - casa-user-data-service
+`Auth Backend Wrapper` - [casa-user-data-service](https://github.com/UPHRH-platform/casa-user-data-service.git)
 
-`Keycloak in CASA upgarded` - casa-keycloak
+`Keycloak in CASA upgarded` - [casa-keycloak](https://github.com/UPHRH-platform/casa-keycloak.git)
 
-`Login and Registration Service - BFF` - lr-service
+`Login and Registration Service - BFF` - [lr-service](https://github.com/UPHRH-platform/lr-service.git)
 
-`Registry Sunbird-RC` - upsmf-registry
-
-
+`Registry Sunbird-RC` - [upsmf-registry](https://github.com/UPHRH-platform/upsmf-registry.git)
 
 NOTE: Hasura - CRUD and Regsitry compliant is not needed
 
