@@ -35,6 +35,8 @@ Reference for Architecture
 
 `Registry Sunbird-RC` - [upsmf-registry](https://github.com/UPHRH-platform/upsmf-registry.git)
 
+`Mock Schema` - [Mock Schema](https://github.com/UPHRH-platform/CASAMockSchema)
+
 NOTE: Hasura - CRUD and Regsitry compliant is not needed
 
 ### Details on .env file
