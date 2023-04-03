@@ -16,6 +16,7 @@ This will run the service in background on the server. Allow ports accordingly i
 ```
 3. `pm2 start npm --name "lr-service" -- start`
 
+Service will start on PORT 5000
 
 Notes
 ------
