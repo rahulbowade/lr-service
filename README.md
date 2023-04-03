@@ -28,9 +28,13 @@ Reference for Architecture
 -----------------------------
 
 `Auth Backend Wrapper` - casa-user-data-service
+
 `Keycloak in CASA upgarded` - casa-keycloak
+
 `Login and Registration Service - BFF` - lr-service
+
 `Registry Sunbird-RC` - upsmf-registry
+
 
 
 NOTE: Hasura - CRUD and Regsitry compliant is not needed
