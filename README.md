@@ -22,3 +22,15 @@ Notes
 ------
 
 Student and teacher have not username and password associated with it, so they both have `/register` endpoints and institutes only have `/login` endpoints. Please go through the postman collection shared above. 
+
+
+Reference for Architecture
+-----------------------------
+
+`Auth Backend Wrapper` - casa-user-data-service
+`Keycloak in CASA upgarded` - casa-keycloak
+`Login and Registration Service - BFF` - lr-service
+`Registry Sunbird-RC` - upsmf-registry
+
+
+NOTE: Hasura - CRUD and Regsitry compliant is not needed
