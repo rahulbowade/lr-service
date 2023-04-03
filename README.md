@@ -37,7 +37,7 @@ Reference for Architecture
 
 `Mock Schema` - [Mock Schema](https://github.com/UPHRH-platform/CASAMockSchema)
 
-NOTE: Hasura - CRUD and Regsitry compliant is not needed
+**NOTE**: Hasura - CRUD and Regsitry compliant is not needed
 
 ### Details on .env file
 
