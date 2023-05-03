@@ -24,6 +24,7 @@ export class AppController {
 
   @Post('login/Student')
   loginStudent(@Body() loginDto: LoginDto) {
+    console.log("Befor calling the loginStudent method@@@");
     return this.appService.loginStudent(loginDto.username, loginDto.password);
   }
 

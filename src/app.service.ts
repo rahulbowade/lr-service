@@ -218,6 +218,7 @@ export class AppService {
     try {
       let _;
       [_, studentId] = username.split('_');
+      console.log("Username is "+username);
       if (_ !== 'student')
         throw new Error('Username should be of form student_id');
     } catch (e) {
@@ -228,12 +229,15 @@ export class AppService {
       );
     }
     const res = await lastValueFrom(
+      console.log("STUDENT_DATA_CASA_BASE_URI is "+process.env.STUDENT_DATA_CASA_BASE_URI);
+      console.log("studentId is "+studentId);
       this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId),
     );
     const studentData = res.data;
 
     // search in RC using Student's username
     console.log(studentData);
+    console.log("studentData is "+studentData);
     const searchRes: Array<any> = await searchEntity(
       this.httpService,
       process.env.BASE_URI_RC + 'Student/search',
@@ -247,7 +251,7 @@ export class AppService {
         offset: 0,
       },
     );
-
+    console.log("searchRes is "+searchRes);
     // Update or register Studnet
     const entityData = {
       name: studentData.StudentName,
@@ -261,6 +265,7 @@ export class AppService {
       dob: studentData.DateOfBirth,
     };
     console.log();
+    console.log("entityData is "+entityData);
     let osid;
     if (searchRes.length) {
       // Update Data
@@ -283,12 +288,14 @@ export class AppService {
         scope: 'openid',
         client_id: 'registry-frontend',
       });
+      console.log("data is "+data);
       const rc_res = await getAccessTokenFromCreds(
         data,
         process.env.ACCESS_TOKEN_URI_RC,
         this.httpService,
         '',
       );
+      console.log("rc_res is "+rc_res);
       return { ...rc_res, osid };
     } catch (e) {
       console.log(e.response.data);
