@@ -228,12 +228,12 @@ export class AppService {
         HttpStatus.NOT_FOUND,
       );
     }
+    console.log("STUDENT_DATA_CASA_BASE_URI is "+process.env.STUDENT_DATA_CASA_BASE_URI);
+    console.log("studentId is "+studentId);
     const res = await lastValueFrom(
       this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId),
     );
     const studentData = res.data;
-    console.log("STUDENT_DATA_CASA_BASE_URI is "+process.env.STUDENT_DATA_CASA_BASE_URI);
-    console.log("studentId is "+studentId);
     // search in RC using Student's username
     console.log(studentData);
     console.log("studentData is "+studentData);
