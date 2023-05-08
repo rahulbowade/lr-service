@@ -276,7 +276,12 @@ export class AppService {
       osid = searchRes[0].osid;
     } else {
       // TODO: redirect to login
-      throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
+      //throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
+      await registerEntity(
+      this.httpService,
+      entityData,
+      process.env.BASE_URI_RC + `Student/invite`,
+    );
     }
 
     try {
