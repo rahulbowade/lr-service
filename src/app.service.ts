@@ -7,6 +7,7 @@ import {
 import {
   registerEntity,
   resetPasswordEntity,
+  createUserEntity,
   searchEntity,
   updateEntity,
 } from 'util/entityHelper';
@@ -212,9 +213,9 @@ export class AppService {
     }
   }
 
-  async loginStudent(username: string, password: string) {
+  async loginStudent(registrationNo: string, dob: string) {
     // fetch data from backend wrapper
-    let studentId;
+    /*let studentId;
     try {
       let _;
       [_, studentId] = username.split('_');
@@ -222,28 +223,43 @@ export class AppService {
       if (_ !== 'student')
         throw new Error('Username should be of form student_id');
     } catch (e) {
-      console.log(e.response.data);
+      console.log(e);
       throw new HttpException(
         'Invalid username, username should be of form <entity>_{id}',
         HttpStatus.NOT_FOUND,
       );
-    }
+    }*/
     console.log("STUDENT_DATA_CASA_BASE_URI is "+process.env.STUDENT_DATA_CASA_BASE_URI);
-    console.log("studentId is "+studentId);
-    const res = await lastValueFrom(
-      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId),
+    console.log("date of birth is "+dob);
+    let res;
+    try{
+      res = await lastValueFrom(
+      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + registrationNo, { timeout: 3000 }),
     );
+    } catch(e){
+    console.log(e);
+    console.log("error message :"+ e.response.data.message);
+    throw new HttpException(
+         e.response.data.message,
+         HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+    }
     const studentData = res.data;
-    // search in RC using Student's username
-    console.log(studentData);
-    console.log("studentData is "+studentData);
+    let username = studentData.StudentName;
+    console.log("username is "+ username);
+
+    let password = username + '@' + registrationNo;
+    console.log("password is "+ password);
+
+    // search in RC using Student's registrationNo
+    console.log("studentData is "+JSON.stringify(studentData));
     const searchRes: Array<any> = await searchEntity(
       this.httpService,
       process.env.BASE_URI_RC + 'Student/search',
       {
         filters: {
-          username: {
-            eq: username,
+          rollNo: {
+            eq: registrationNo,
           },
         },
         limit: 1,
@@ -251,6 +267,7 @@ export class AppService {
       },
     );
     console.log("searchRes is "+searchRes);
+    console.log(JSON.stringify(searchRes));
     // Update or register Studnet
     const entityData = {
       name: studentData.StudentName,
@@ -260,11 +277,12 @@ export class AppService {
       StudentKey: studentData.StudentProfileKey.toString(),
       centerKey: studentData.CenterKey.toString(),
       address: studentData.Address,
-      rollNo: studentData.RollNo.toString(),
-      dob: studentData.DateOfBirth,
+      //rollNo: studentData.RollNo.toString(),
+      rollNo: registrationNo,
+      //dob: studentData.DateOfBirth,
+      dob: dob,
     };
-    console.log();
-    console.log("entityData is "+entityData);
+    console.log("entityData is "+JSON.stringify(entityData));
     let osid;
     if (searchRes.length) {
       // Update Data
@@ -276,11 +294,53 @@ export class AppService {
       osid = searchRes[0].osid;
     } else {
       // TODO: redirect to login
-      //throw new HttpException('Entity not registered', HttpStatus.NOT_FOUND);
+      console.log("Calling the registerEntity API");
       await registerEntity(
       this.httpService,
       entityData,
       process.env.BASE_URI_RC + `Student/invite`,
+    );
+   // Data for adding the user in RC keycloak
+    let lastname = studentData.StudentName_SurName;
+    if(!lastname) {
+      lastname = "";
+    }
+    let email = studentData.EmailId;
+    if(!email) {
+      email = "";
+    }
+    const userData = {
+      firstName: studentData.StudentName.toString(),
+      lastName: lastname.toString(),
+      email: email.toString(),
+      username: username,
+      enabled: 'true',
+    };
+    console.log("userData is "+userData);
+    console.log(JSON.stringify(userData));
+
+    //Create user entity in RC keycloak
+    await createUserEntity(
+      this.httpService,
+      process.env.ADMIN_ACCESS_TOKEN_URL,
+      username,
+      userData,
+      process.env.ADMIN_USERNAME,
+      process.env.ADMIN_PASS,
+      process.env.CREATE_USER_INFO_URL,
+      process.env.ADMIN_USER_INFO_URL,
+    );
+
+    // Reset password
+    await resetPasswordEntity(
+      this.httpService,
+      process.env.ADMIN_ACCESS_TOKEN_URL,
+      process.env.RC_RESET_PASSWORD_BASE_URL,
+      username,
+      password,
+      process.env.ADMIN_USERNAME,
+      process.env.ADMIN_PASS,
+      process.env.ADMIN_USER_INFO_URL,
     );
     }
 
@@ -290,7 +350,8 @@ export class AppService {
         password: password,
         grant_type: 'password',
         scope: 'openid',
-        client_id: 'registry-frontend',
+        client_id: 'admin-api',
+        client_secret: process.env.CLIENT_SECRET,
       });
       console.log("data is "+data);
       const rc_res = await getAccessTokenFromCreds(

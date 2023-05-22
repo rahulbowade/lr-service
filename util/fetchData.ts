@@ -26,7 +26,7 @@ export const fetchDataFromAcessTokenGet = async (
 ) => {
   const res = await lastValueFrom(
     httpService
-      .get(info_uri, { headers: { Authorization: `Bearer ${access_token}` } })
+      .get(info_uri, { headers: { Authorization: `Bearer ${access_token}` }, timeout: 3000})
       .pipe(map((item) => item.data)),
   );
   return res;
@@ -48,7 +48,29 @@ export const getAccessTokenFromCreds = async (
   };
   const res = await lastValueFrom(
     httpService
-      .post(config.url, config.data, { headers: config.headers })
+      .post(config.url, config.data, { headers: config.headers , timeout: 3000})
+      .pipe(map((item) => item.data)),
+  );
+  return res;
+};
+
+export const addDataFromAcessTokenGet = async (
+  data: any,
+  authURI: string,
+  httpService: HttpService,
+  clientIDSecret: string,
+) => {
+  const config: any = {
+    url: authURI,
+    headers: {
+      'content-type': 'application/json',
+      Authorization: `Bearer ${clientIDSecret}`,
+    },
+    data: data,
+  };
+  const res = await lastValueFrom(
+    httpService
+      .post(config.url, config.data, { headers: config.headers ,timeout: 3000})
       .pipe(map((item) => item.data)),
   );
   return res;
