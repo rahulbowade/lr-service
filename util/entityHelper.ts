@@ -88,6 +88,30 @@ export const updateEntity = async (
   }
 };
 
+export const updateStudentEntity = async (
+  httpService: HttpService,
+  entityData: any,
+  endpointUri: string,
+  clientIDSecret: string,
+) => {
+  try {
+    const res = await lastValueFrom(
+      httpService
+        .put(endpointUri, JSON.stringify(entityData), {
+          headers: { 'Content-type': 'application/json',Authorization: `Bearer ${clientIDSecret}`, }, timeout: 3000
+        })
+        .pipe(map((item) => item.data)),
+    );
+    return res;
+  } catch (e) {
+    console.log(e);
+    throw new HttpException(
+      '500 Internal while Updating Entity',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+};
+
 export const createUserEntity = async (
   httpService: HttpService,
   adminAccessTokenURL: string,

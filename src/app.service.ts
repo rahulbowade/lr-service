@@ -10,6 +10,7 @@ import {
   createUserEntity,
   searchEntity,
   updateEntity,
+  updateStudentEntity,
 } from 'util/entityHelper';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import * as qs from 'qs';
@@ -285,11 +286,38 @@ export class AppService {
     console.log("entityData is "+JSON.stringify(entityData));
     let osid;
     if (searchRes.length) {
+      // getting access token
+      let rc_res;
+      try {
+      const data = qs.stringify({
+        username: username,
+        password: password,
+        grant_type: 'password',
+        scope: 'openid',
+        client_id: 'admin-api',
+        client_secret: process.env.CLIENT_SECRET,
+      });
+      console.log("data during update api call is "+data);
+      rc_res = await getAccessTokenFromCreds(
+        data,
+        process.env.ACCESS_TOKEN_URI_RC,
+        this.httpService,
+        '',
+      );
+      console.log("rc_res during update api call is "+rc_res.access_token);
+      } catch (e) {
+      console.log(e.response.data);
+      throw new HttpException(
+        "Can't get token from RC keycloak - During update the Student",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+      }
       // Update Data
-      updateEntity(
+      updateStudentEntity(
         this.httpService,
         entityData,
         process.env.BASE_URI_RC + `Student/${searchRes[0].osid}`,
+        rc_res.access_token,
       );
       osid = searchRes[0].osid;
     } else {
