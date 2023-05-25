@@ -214,9 +214,9 @@ export class AppService {
     }
   }
 
-  async loginStudent(registrationNo: string, dob: string) {
+  async loginStudent(username: string, password: string) {
     // fetch data from backend wrapper
-    /*let studentId;
+    let studentId;
     try {
       let _;
       [_, studentId] = username.split('_');
@@ -229,13 +229,13 @@ export class AppService {
         'Invalid username, username should be of form <entity>_{id}',
         HttpStatus.NOT_FOUND,
       );
-    }*/
+    }
     console.log("STUDENT_DATA_CASA_BASE_URI is "+process.env.STUDENT_DATA_CASA_BASE_URI);
-    console.log("date of birth is "+dob);
+    //console.log("date of birth is "+dob);
     let res;
     try{
       res = await lastValueFrom(
-      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + registrationNo, { timeout: 3000 }),
+      this.httpService.get(process.env.STUDENT_DATA_CASA_BASE_URI + studentId, { timeout: 3000 }),
     );
     } catch(e){
     console.log(e);
@@ -246,11 +246,11 @@ export class AppService {
     );
     }
     const studentData = res.data;
-    let username = studentData.StudentName;
+    /*let username = studentData.StudentName;
     console.log("username is "+ username);
 
     let password = username + '@' + registrationNo;
-    console.log("password is "+ password);
+    console.log("password is "+ password);*/
 
     // search in RC using Student's registrationNo
     console.log("studentData is "+JSON.stringify(studentData));
@@ -259,8 +259,8 @@ export class AppService {
       process.env.BASE_URI_RC + 'Student/search',
       {
         filters: {
-          rollNo: {
-            eq: registrationNo,
+          username: {
+            eq: username,
           },
         },
         limit: 1,
@@ -278,10 +278,10 @@ export class AppService {
       StudentKey: studentData.StudentProfileKey.toString(),
       centerKey: studentData.CenterKey.toString(),
       address: studentData.Address,
-      //rollNo: studentData.RollNo.toString(),
-      rollNo: registrationNo,
-      //dob: studentData.DateOfBirth,
-      dob: dob,
+      rollNo: studentData.RollNo.toString(),
+      //rollNo: registrationNo,
+      dob: studentData.DateOfBirth,
+      //dob: dob,
     };
     console.log("entityData is "+JSON.stringify(entityData));
     let osid;
