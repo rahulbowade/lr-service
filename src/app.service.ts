@@ -253,7 +253,8 @@ export class AppService {
     console.log("password is "+ password);*/
 
     // search in RC using Student's registrationNo
-    console.log("studentData is "+JSON.stringify(studentData));
+    console.log("Data is coming from CASA DB : "+JSON.stringify(studentData));
+    console.log("Before seraching the data in elastic search");
     const searchRes: Array<any> = await searchEntity(
       this.httpService,
       process.env.BASE_URI_RC + 'Student/search',
@@ -267,8 +268,8 @@ export class AppService {
         offset: 0,
       },
     );
-    console.log("searchRes is "+searchRes);
-    console.log(JSON.stringify(searchRes));
+    console.log("Elastic searchRes is "+searchRes);
+    console.log("After seraching the data in elastic search" +JSON.stringify(searchRes));
     // Update or register Studnet
     const entityData = {
       name: studentData.StudentName,
@@ -287,6 +288,7 @@ export class AppService {
     let osid;
     if (searchRes.length) {
       // getting access token
+      console.log("Inside the method to update the student ");
       let rc_res;
       try {
       const data = qs.stringify({
@@ -306,9 +308,9 @@ export class AppService {
       );
       console.log("rc_res during update api call is "+rc_res.access_token);
       } catch (e) {
-      console.log(e.response.data);
+      console.log("Inside the catch during updating the Student");
       throw new HttpException(
-        "Can't get token from RC keycloak - During update the Student",
+        "Can't get token from RC keycloak - During updating the Student",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
       }
@@ -381,7 +383,7 @@ export class AppService {
         client_id: 'admin-api',
         client_secret: process.env.CLIENT_SECRET,
       });
-      console.log("data is "+data);
+      console.log("data after resetting the password is "+data);
       const rc_res = await getAccessTokenFromCreds(
         data,
         process.env.ACCESS_TOKEN_URI_RC,
